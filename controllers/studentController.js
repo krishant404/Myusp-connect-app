@@ -53,6 +53,57 @@ const getAudit = async (req, res) => {
   }
 };
 
+const getFullAudit = async (req, res) => {
+  const studentId = req.params.id;
+
+  try {
+    // 🔍 Get student's program info
+    const studentResult = await pool.query(
+      'SELECT program_title FROM students WHERE student_id = $1',
+      [studentId]
+    );
+
+    if (studentResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
+    const programTitle = studentResult.rows[0].program_title;
+
+    // 📋 Get all units for this program
+    const allUnitsResult = await pool.query(
+      `SELECT u.unit_code, u.title, u.year_offered, u.semester_offered,
+              CASE WHEN p.unit_id IS NOT NULL THEN true ELSE false END AS is_prerequisite
+       FROM units u
+       LEFT JOIN prerequisites p ON u.unit_code = p.unit_code
+       WHERE u.program_title = $1
+       ORDER BY u.year_offered, u.semester_offered`,
+      [programTitle]
+    );
+
+    // ✅ Get registered units for the student
+    const registeredUnitsResult = await pool.query(
+      'SELECT unit_code FROM registered_units WHERE student_id = $1',
+      [studentId]
+    );
+
+    const registeredSet = new Set(registeredUnitsResult.rows.map(row => row.unit_code));
+
+    const result = allUnitsResult.rows.map(unit => ({
+      unitCode: unit.unit_code,
+      title: unit.title,
+      yearOffered: unit.year_offered,
+      semesterOffered: unit.semester_offered,
+      isPrerequisite: unit.is_prerequisite,
+      isRegistered: registeredSet.has(unit.unit_code),
+    }));
+
+    res.json(result);
+  } catch (err) {
+    console.error('Error fetching audit:', err.message);
+    res.status(500).json({ error: 'Failed to load full audit' });
+  }
+};
+
 // 📜 View unit history
 const getUnitHistory = async (req, res) => {
   const studentId = req.params.id;
@@ -171,5 +222,7 @@ module.exports = {
   getUnitHistory,
   registerUnits,
   getStudentDetails,
-  getAvailableUnits
+  getAvailableUnits,
+  getFullAudit, 
+
 };
