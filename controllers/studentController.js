@@ -119,12 +119,25 @@ const registerUnits = async (req, res) => {
       }
 
       for (const unit of newUnits) {
+        const duplicateCheck = await pool.query(
+          `SELECT * FROM registered_units 
+           WHERE student_id = $1 AND unit_code = $2 AND semester = $3`,
+          [student_id, unit.unit_code, unit.semester]
+        );
+      
+        if (duplicateCheck.rows.length > 0) {
+          return res.status(400).json({
+            error: `Unit ${unit.unit_code} has already been registered for ${semester}.`,
+          });
+        }
+      
         await pool.query(
           `INSERT INTO registered_units (student_id, unit_code, semester, program_year)
            VALUES ($1, $2, $3, $4)`,
           [student_id, unit.unit_code, unit.semester, unit.program_year]
         );
       }
+      
     }
 
     res.json({ message: 'Units registered successfully!' });
