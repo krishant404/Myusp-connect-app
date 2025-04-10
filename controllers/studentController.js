@@ -98,11 +98,11 @@ const getFullAudit = async (req, res) => {
       isPrerequisite: !!unit.pre_req_unit_code
     }));
 
-    res.json({
-      student: studentResult.rows[0],
-      units: auditUnits
-    });
-    
+   res.json({
+  student: studentResult.rows[0],
+  units: auditUnits
+});
+
   } catch (err) {
     console.error('Error fetching audit:', err.message);
     res.status(500).json({ error: 'Error fetching audit' });
