@@ -79,6 +79,25 @@ const updateInvoice = async (req, res) => {
 };
 
 // 🎓 Update Grade OR Insert if it doesn't exist
+
+/**
+ * Updates or inserts a grade for a student.
+ *
+ * This function checks if a grade record exists for the given student and unit.
+ * If a record is found, it updates the record with the new grade, semester, and year.
+ * Otherwise, it inserts a new grade record.
+ *
+ * @param {Object} req - Express request object.
+ * @param {Object} req.params - The request parameters.
+ * @param {string} req.params.studentId - Identifier for the student.
+ * @param {string} req.params.unitId - Identifier for the unit.
+ * @param {Object} req.body - The request body containing grade details.
+ * @param {number|string} req.body.grade - Grade to be assigned.
+ * @param {string} req.body.semester - Semester associated with the grade.
+ * @param {number|string} req.body.year - Year associated with the grade.
+ * @param {Object} res - Express response object.
+ * @returns {void} Responds with a JSON message indicating success or error.
+ */
 const updateGrade = async (req, res) => {
   const { studentId, unitId } = req.params;
   const { grade, semester, year } = req.body;
@@ -90,7 +109,7 @@ const updateGrade = async (req, res) => {
     );
 
     if (check.rows.length > 0) {
-      // Update existing grade
+      // Update the existing grade record
       await pool.query(
         `UPDATE grades
          SET grade = $1, semester = $2, year = $3
@@ -100,7 +119,7 @@ const updateGrade = async (req, res) => {
 
       res.json({ message: 'Grade updated successfully' });
     } else {
-      // Insert new grade
+      // Insert a new grade record
       await pool.query(
         `INSERT INTO grades (unit_id, student_id, semester, year, grade)
          VALUES ($1, $2, $3, $4, $5)`,
