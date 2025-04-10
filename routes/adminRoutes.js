@@ -1,9 +1,12 @@
-// routes/adminRoutes.js
 const express = require('express');
 const router = express.Router();
+const verifyToken = require('../middleware/auth');
+const adminController = require('../controllers/adminController');
 
-router.get('/dashboard', (req, res) => {
-  res.send('Admin Dashboard');
-});
+router.post('/student', verifyToken, adminController.createStudent);
+router.put('/invoice/:studentId', verifyToken, adminController.updateInvoice);
+router.put('/grade/:studentId/:unitId', verifyToken, adminController.updateGrade);
+router.post('/program', verifyToken, adminController.createProgram);
+router.post('/unit', verifyToken, adminController.createUnit);
 
 module.exports = router;
