@@ -11,6 +11,7 @@ router.get('/:id/history', verifyToken, studentController.getUnitHistory);
 router.get('/:id/details', verifyToken, studentController.getStudentDetails); // ✅ THIS LINE
 router.post('/register-units', verifyToken, studentController.registerUnits);
 
+router.get('/:id/full-audit', verifyToken, studentController.getFullAudit);
 
 router.get('/available-units', verifyToken, studentController.getAvailableUnits);
 
