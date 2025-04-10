@@ -1,7 +1,18 @@
-// ✅ UPDATED studentController.js (complete file)
+/**
+ * @file studentController.js
+ * @description Handles all student-related API logic including invoice retrieval, 
+ * grades, registration, audit, and unit queries.
+ */
+
 const pool = require('../models/db');
 
-// 🧾 View invoice
+/**
+ * @function getInvoice
+ * @description Fetches the invoice for a specific student.
+ * @route GET /students/:id/invoice
+ * @param {Request} req - Express request object containing student ID as param.
+ * @param {Response} res - Express response object for returning invoice data.
+ */
 const getInvoice = async (req, res) => {
   const studentId = req.params.id;
   try {
@@ -15,7 +26,13 @@ const getInvoice = async (req, res) => {
   }
 };
 
-// 🎓 View grades
+/**
+ * @function getGrades
+ * @description Retrieves all grades for a specific student.
+ * @route GET /students/:id/grades
+ * @param {Request} req
+ * @param {Response} res
+ */
 const getGrades = async (req, res) => {
   const studentId = req.params.id;
   try {
@@ -32,7 +49,13 @@ const getGrades = async (req, res) => {
   }
 };
 
-// 📚 View program audit
+/**
+ * @function getAudit
+ * @description Provides a pass/fail audit for each completed unit.
+ * @route GET /students/:id/audit
+ * @param {Request} req
+ * @param {Response} res
+ */
 const getAudit = async (req, res) => {
   const studentId = req.params.id;
   try {
@@ -53,11 +76,17 @@ const getAudit = async (req, res) => {
   }
 };
 
+/**
+ * @function getFullAudit
+ * @description Returns a complete unit overview for a student's program including prerequisites and registration status.
+ * @route GET /students/:id/full-audit
+ * @param {Request} req
+ * @param {Response} res
+ */
 const getFullAudit = async (req, res) => {
   const studentId = req.params.id;
 
   try {
-    // 🔍 Get student's program info
     const studentResult = await pool.query(
       'SELECT program_title FROM students WHERE student_id = $1',
       [studentId]
@@ -69,7 +98,6 @@ const getFullAudit = async (req, res) => {
 
     const programTitle = studentResult.rows[0].program_title;
 
-    // 📋 Get all units for this program
     const allUnitsResult = await pool.query(
       `SELECT u.unit_code, u.title, u.year_offered, u.semester_offered,
               CASE WHEN p.unit_id IS NOT NULL THEN true ELSE false END AS is_prerequisite
@@ -80,7 +108,6 @@ const getFullAudit = async (req, res) => {
       [programTitle]
     );
 
-    // ✅ Get registered units for the student
     const registeredUnitsResult = await pool.query(
       'SELECT unit_code FROM registered_units WHERE student_id = $1',
       [studentId]
@@ -104,7 +131,13 @@ const getFullAudit = async (req, res) => {
   }
 };
 
-// 📜 View unit history
+/**
+ * @function getUnitHistory
+ * @description Retrieves a student's unit action history.
+ * @route GET /students/:id/history
+ * @param {Request} req
+ * @param {Response} res
+ */
 const getUnitHistory = async (req, res) => {
   const studentId = req.params.id;
   try {
@@ -122,7 +155,13 @@ const getUnitHistory = async (req, res) => {
   }
 };
 
-// 📋 Get student details
+/**
+ * @function getStudentDetails
+ * @description Returns core student details including program and year.
+ * @route GET /students/:id/details
+ * @param {Request} req
+ * @param {Response} res
+ */
 const getStudentDetails = async (req, res) => {
   const studentId = req.params.id;
   try {
@@ -140,7 +179,13 @@ const getStudentDetails = async (req, res) => {
   }
 };
 
-// 🧾 Register units
+/**
+ * @function registerUnits
+ * @description Registers a student for up to 4 units per semester, checking for duplicates and existing registrations.
+ * @route POST /students/register
+ * @param {Request} req - Includes student_id and units array in the body.
+ * @param {Response} res
+ */
 const registerUnits = async (req, res) => {
   const { student_id, units } = req.body;
   try {
@@ -188,7 +233,6 @@ const registerUnits = async (req, res) => {
           [student_id, unit.unit_code, unit.semester, unit.program_year]
         );
       }
-      
     }
 
     res.json({ message: 'Units registered successfully!' });
@@ -198,7 +242,13 @@ const registerUnits = async (req, res) => {
   }
 };
 
-// 🔍 Fetch eligible units based on student program, year and semester
+/**
+ * @function getAvailableUnits
+ * @description Fetches all units available to a student based on their current program, year, and semester.
+ * @route GET /students/available-units
+ * @param {Request} req - Query must include programTitle, yearOffered, semester.
+ * @param {Response} res
+ */
 const getAvailableUnits = async (req, res) => {
   const { programTitle, yearOffered, semester } = req.query;
   try {
@@ -223,6 +273,5 @@ module.exports = {
   registerUnits,
   getStudentDetails,
   getAvailableUnits,
-  getFullAudit, 
-
+  getFullAudit
 };
